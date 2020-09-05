@@ -4,7 +4,7 @@ import numpy as np
 EPOCH_COUNT = 50000
 
 input_features = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-target_output = np.array([[0, 1, 1, 0]]).T  # xor
+target_output = np.array([[0], [1], [1], [0]])  # xor
 
 neuron_counts_in_hidden_layers = [5, 3]
 
