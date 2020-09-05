@@ -45,13 +45,6 @@ for epoch in range(EPOCH_COUNT):
             np.dot(output_from_previous, weights[layer])
         )
         output_from.append(sigmoid(dot_weights_before_activation[layer]))
-    """
-    dot_weights_before_activation_0 = np.dot(input_features, weights_0)
-    output_from_0 = sigmoid(dot_weights_before_activation_0)
-
-    dot_weights_before_activation_1 = np.dot(output_from_0, weights_1)
-    output_from_1 = sigmoid(dot_weights_before_activation_1)
-    """
 
     # report error this epoch
     if epoch % 40 == 0:
@@ -76,41 +69,15 @@ for epoch in range(EPOCH_COUNT):
         derror_din[i] = derror_dout[i] * dout_din[i]
         derror_dw[i] = np.dot(din_dw[i].T, derror_din[i])
 
-    """
-    # phase 1 backprop
-    derror_dout_1 = output_from_1 - target_output
-    dout_din_1 = sigmoid_der(dot_weights_before_activation_1)
-    din_dw_1 = output_from_0
-
-    derror_din_1 = derror_dout_1 * dout_din_1
-    derror_dw_1 = np.dot(din_dw_1.T, derror_din_1)
-
-    # phase 0 backprop
-    # derror_dwh = derror_dout_0 * dout_din_0 * din_dw_0
-    # dino_douth = weights_1
-    derror_dout_0 = np.dot(derror_din_1, weights_1.T)
-    dout_din_0 = sigmoid_der(dot_weights_before_activation_0)
-    din_dw_0 = input_features
-
-    derror_dw_0 = np.dot(din_dw_0.T, dout_din_0 * derror_dout_0)
-    """
-
     # update weights
     for i in range(layer_count):
         weights[i] -= learning_rate * derror_dw[i]
-    """
-    weights_0 -= learning_rate * derror_dw_0
-    weights_1 -= learning_rate * derror_dw_1
-    """
 
     """
     # update bias
     for i in derror_dino:
         bias -= learning_rate * i
     """
-
-# print(weights)
-# print(bias)
 
 test_input = np.array([[0, 1]])
 out_from_layer = []
