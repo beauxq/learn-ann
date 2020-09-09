@@ -3,7 +3,9 @@ import numpy as np
 
 EPOCH_COUNT = 50000
 
-input_features = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+# 4 input sets, 2 input features
+input_sets = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+# an output for each input set to train on
 target_output = np.array([[0], [1], [1], [0]])  # xor
 
 neuron_counts_in_hidden_layers = [5, 3]
@@ -50,7 +52,7 @@ def main():
             else len(target_output[0])
         neuron_count_previous = len(layers[-1].weights[0]) \
             if i > 0 \
-            else len(input_features[0])
+            else len(input_sets[0])  # number of input features
         layers.append(Layer(neuron_count, neuron_count_previous))
 
     # bias = random()
@@ -59,7 +61,7 @@ def main():
     for epoch in range(EPOCH_COUNT):
         for i, layer in enumerate(layers):
             # print("layer", layer)
-            output_from_previous = layers[i - 1].output if i > 0 else input_features
+            output_from_previous = layers[i - 1].output if i > 0 else input_sets
             # print(output_from_previous)
             layer.weighted_sum_before_activation = \
                 np.dot(output_from_previous, layer.weights) + layer.biases
@@ -81,7 +83,7 @@ def main():
                 if i == layer_count - 1 \
                 else np.dot(layers[i+1].derror_din, layers[i+1].weights.T)
             layer.dout_din = sigmoid_der(layer.weighted_sum_before_activation)
-            layer.din_dw = input_features if i == 0 else layers[i-1].output
+            layer.din_dw = input_sets if i == 0 else layers[i-1].output
 
             layer.derror_din = layer.derror_dout * layer.dout_din
             layer.derror_dw = np.dot(layer.din_dw.T, layer.derror_din)
@@ -95,8 +97,8 @@ def main():
             # print("update biases")
             # print(layer.biases)
             # print(layer.derror_din)
-            for one_for_each_input in layer.derror_din:  # not each input feature, but each input
-                layer.biases -= learning_rate * one_for_each_input
+            for one_for_each_input_set in layer.derror_din:
+                layer.biases -= learning_rate * one_for_each_input_set
 
     out_from_layer = []
     for i, layer in enumerate(layers):
