@@ -15,7 +15,9 @@ class Layer:
         self.weights = np.array(
             [[random() for __ in range(neuron_count)] for _ in range(neuron_count_previous)]
         )
-        self.dot_weights_before_activation = None  # applied weights but not activation function yet
+        self.biases = np.array([random() for _ in range(neuron_count)])
+
+        self.weighted_sum_before_activation = None  # z
         self.output = None  # after activation function
 
         # all the derivatives
@@ -24,6 +26,11 @@ class Layer:
         self.din_dw = None  # derivative of input with respect to weights
         self.derror_din = None  # derivative of error with respect to input
         self.derror_dw = None  # derivative of error with respect to weights
+
+    def __repr__(self):
+        to_return = "Layer weights:\n"
+        to_return += str(self.weights) + "\nbiases:\n" + str(self.biases)
+        return to_return
 
 
 def main():
@@ -54,9 +61,13 @@ def main():
             # print("layer", layer)
             output_from_previous = layers[i - 1].output if i > 0 else input_features
             # print(output_from_previous)
-            layer.dot_weights_before_activation = \
-                np.dot(output_from_previous, layer.weights)
-            layer.output = sigmoid(layer.dot_weights_before_activation)
+            layer.weighted_sum_before_activation = \
+                np.dot(output_from_previous, layer.weights) + layer.biases
+            # print("before biases:")
+            # print(np.dot(output_from_previous, layer.weights))
+            # print("after biases:")
+            # print(layer.weighted_sum_before_activation)
+            layer.output = sigmoid(layer.weighted_sum_before_activation)
 
         # report error this epoch
         if epoch % 40 == 0:
@@ -69,7 +80,7 @@ def main():
             layer.derror_dout = layer.output - target_output \
                 if i == layer_count - 1 \
                 else np.dot(layers[i+1].derror_din, layers[i+1].weights.T)
-            layer.dout_din = sigmoid_der(layer.dot_weights_before_activation)
+            layer.dout_din = sigmoid_der(layer.weighted_sum_before_activation)
             layer.din_dw = input_features if i == 0 else layers[i-1].output
 
             layer.derror_din = layer.derror_dout * layer.dout_din
@@ -81,17 +92,16 @@ def main():
             # print(layer.weights)
             # print(layer.derror_dw)
             layer.weights -= learning_rate * layer.derror_dw
-
-        """
-        # update bias
-        for i in derror_dino:
-            bias -= learning_rate * i
-        """
+            # print("update biases")
+            # print(layer.biases)
+            # print(layer.derror_din)
+            for one_for_each_input in layer.derror_din:  # not each input feature, but each input
+                layer.biases -= learning_rate * one_for_each_input
 
     out_from_layer = []
     for i, layer in enumerate(layers):
         previous_layer_output = test_input if i == 0 else out_from_layer[-1]
-        out_from_layer.append(sigmoid(np.dot(previous_layer_output, layer.weights)))
+        out_from_layer.append(sigmoid(np.dot(previous_layer_output, layer.weights) + layer.biases))
         print(layer.weights)
 
     for each in out_from_layer:
