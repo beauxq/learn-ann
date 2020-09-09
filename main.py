@@ -27,27 +27,27 @@ class Layer:
 
 
 def main():
-    hidden_layer_count = len(neuron_counts_in_hidden_layers)
-    layer_count = hidden_layer_count + 1
-    layers = []
-    for layer in range(layer_count):
-        neuron_count = neuron_counts_in_hidden_layers[layer] \
-            if layer < hidden_layer_count \
-            else len(target_output[0])
-        neuron_count_previous = len(layers[-1].weights[0]) \
-            if layer > 0 \
-            else len(input_features[0])
-        layers.append(Layer(neuron_count, neuron_count_previous))
-
-    # bias = random()
-    learning_rate = 0.0625
-
     def sigmoid(x):
         return 1 / (1 + np.exp(-x))
 
     def sigmoid_der(x):
         sx = sigmoid(x)
         return sx * (1 - sx)
+
+    hidden_layer_count = len(neuron_counts_in_hidden_layers)
+    layer_count = hidden_layer_count + 1
+    layers = []
+    for i in range(layer_count):
+        neuron_count = neuron_counts_in_hidden_layers[i] \
+            if i < hidden_layer_count \
+            else len(target_output[0])
+        neuron_count_previous = len(layers[-1].weights[0]) \
+            if i > 0 \
+            else len(input_features[0])
+        layers.append(Layer(neuron_count, neuron_count_previous))
+
+    # bias = random()
+    learning_rate = 0.0625
 
     for epoch in range(EPOCH_COUNT):
         for i, layer in enumerate(layers):
