@@ -1,4 +1,5 @@
 from random import random
+from abc import ABC, abstractmethod
 import numpy as np
 
 EPOCH_COUNT = 50000
@@ -9,15 +10,47 @@ input_sets = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 target_output = np.array([[0], [1], [1], [0]])  # xor
 
 neuron_counts_in_hidden_layers = [5, 3]
+use_relu = True
 
 test_input = np.array([[0, 1]])
 
 class Layer:
-    def __init__(self, neuron_count: int, neuron_count_previous: int):
+    class Activation(ABC):
+        @staticmethod
+        @abstractmethod
+        def f(x):
+            pass
+
+        @staticmethod
+        @abstractmethod
+        def der(x):
+            pass
+
+    class Sigmoid(Activation):
+        @staticmethod
+        def f(x):
+            return 1 / (1 + np.exp(-x))
+
+        @staticmethod
+        def der(x):
+            sx = Layer.Sigmoid.f(x)
+            return sx * (1 - sx)
+
+    class ReLU(Activation):
+        @staticmethod
+        def f(x):
+            return np.maximum(0, x)
+
+        @staticmethod
+        def der(x):
+            return 1 * (x > 0)
+
+    def __init__(self, neuron_count: int, neuron_count_previous: int, activation: type):
         self.weights = np.array(
             [[random() for __ in range(neuron_count)] for _ in range(neuron_count_previous)]
         )
         self.biases = np.array([random() for _ in range(neuron_count)])
+        self.activation = activation
 
         self.weighted_sum_before_activation = None  # z
         self.output = None  # after activation function
@@ -36,13 +69,6 @@ class Layer:
 
 
 def main():
-    def sigmoid(x):
-        return 1 / (1 + np.exp(-x))
-
-    def sigmoid_der(x):
-        sx = sigmoid(x)
-        return sx * (1 - sx)
-
     hidden_layer_count = len(neuron_counts_in_hidden_layers)
     layer_count = hidden_layer_count + 1
     layers = []
@@ -53,7 +79,10 @@ def main():
         neuron_count_previous = len(layers[-1].weights[0]) \
             if i > 0 \
             else len(input_sets[0])  # number of input features
-        layers.append(Layer(neuron_count, neuron_count_previous))
+        activation = (Layer.ReLU if use_relu else Layer.Sigmoid) \
+            if i < hidden_layer_count \
+            else Layer.Sigmoid
+        layers.append(Layer(neuron_count, neuron_count_previous, activation))
 
     # bias = random()
     learning_rate = 0.0625
@@ -69,7 +98,7 @@ def main():
             # print(np.dot(output_from_previous, layer.weights))
             # print("after biases:")
             # print(layer.weighted_sum_before_activation)
-            layer.output = sigmoid(layer.weighted_sum_before_activation)
+            layer.output = layer.activation.f(layer.weighted_sum_before_activation)
 
         # report error this epoch
         if epoch % 40 == 0:
@@ -82,7 +111,7 @@ def main():
             layer.derror_dout = layer.output - target_output \
                 if i == layer_count - 1 \
                 else np.dot(layers[i+1].derror_din, layers[i+1].weights.T)
-            layer.dout_din = sigmoid_der(layer.weighted_sum_before_activation)
+            layer.dout_din = layer.activation.der(layer.weighted_sum_before_activation)
             layer.din_dw = input_sets if i == 0 else layers[i-1].output
 
             layer.derror_din = layer.derror_dout * layer.dout_din
@@ -103,7 +132,9 @@ def main():
     out_from_layer = []
     for i, layer in enumerate(layers):
         previous_layer_output = test_input if i == 0 else out_from_layer[-1]
-        out_from_layer.append(sigmoid(np.dot(previous_layer_output, layer.weights) + layer.biases))
+        out_from_layer.append(layer.activation.f(
+            np.dot(previous_layer_output, layer.weights) + layer.biases
+        ))
         print(layer.weights)
 
     for each in out_from_layer:
