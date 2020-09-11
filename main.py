@@ -8,6 +8,8 @@ def main():
     input_sets = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
     # an output for each input set to train on
     target_output = np.array([[0], [1], [1], [0]])  # xor
+    input_feature_count = len(input_sets[0])
+    output_feature_count = len(target_output[0])
 
     neuron_counts_in_hidden_layers = [5, 3]
     hidden_activation = Layer.Sigmoid
@@ -16,11 +18,10 @@ def main():
 
     test_input = np.array([[0, 1]])
 
-
-    net = Network(len(input_sets[0]))
+    net = Network(input_feature_count)
     for neuron_count in neuron_counts_in_hidden_layers:
         net.add_layer(neuron_count, hidden_activation)
-    net.add_layer(len(target_output[0]), Layer.Sigmoid)
+    net.add_layer(output_feature_count, Layer.Sigmoid)
 
     net.train(input_sets, target_output, epoch_count, learning_rate)
 
