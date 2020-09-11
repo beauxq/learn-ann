@@ -8,6 +8,8 @@ class Network:
         self._layers: List[Layer] = []
 
     def add_layer(self, neuron_count: int, activation: type):
+        if not issubclass(activation, Layer.Activation):
+            raise ValueError("activation should subclass of Layer.Activation")
         neuron_count_previous = len(self._layers[-1].weights[0]) \
             if len(self._layers) > 0 \
             else self._input_feature_count
@@ -21,9 +23,8 @@ class Network:
         # TODO: test all of these exceptions
         if input_sets.shape[1] != self._input_feature_count:
             raise ValueError(
-                "input_sets doesn't have the right feature count - " +
-                "input_sets.shape: " + str(input_sets.shape) +
-                " - network input feature count: " + str(self._layers[0].weights.shape)
+                "input doesn't have the right feature count - " +
+                str(input_sets.shape) + " " + str(self._layers[0].weights.shape)
             )
         if input_sets.shape[0] != target_output.shape[0]:
             raise ValueError("input and output sizes don't match - shapes " +
@@ -60,6 +61,11 @@ class Network:
 
     def predict(self, input_set: np.ndarray) -> np.ndarray:
         """ return prediction based on current model """
+        if input_set.shape[1] != self._input_feature_count:
+            raise ValueError(
+                "input doesn't have the right feature count - " +
+                str(input_set.shape) + " " + str(self._layers[0].weights.shape)
+            )
         self._layers[0].input = input_set
         for i in range(1, len(self._layers)):
             self._layers[i].input = self._layers[i-1].output
