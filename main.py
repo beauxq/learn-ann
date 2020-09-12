@@ -1,4 +1,3 @@
-from typing import List
 import numpy as np
 from layer import Layer
 from network import Network
@@ -16,7 +15,7 @@ def main():
     epoch_count = 40000
     learning_rate = 0.0625
 
-    test_input = np.array([[0, 1]])
+    test_input = np.array([[1, 1], [0, 1], [0, 0], [1, 0]])
 
     net = Network(input_feature_count)
     for neuron_count in neuron_counts_in_hidden_layers:
@@ -25,7 +24,15 @@ def main():
 
     net.train(input_sets, target_output, epoch_count, learning_rate)
 
-    print(net.predict(test_input))
+    # test save and load in string
+    # print(net)
+    saved = str(net)
+    new_net = Network()
+    new_net.load_from_str(saved)
+
+    print(new_net)
+    print("results:")
+    print(new_net.predict(test_input))
 
 
 if __name__ == "__main__":

@@ -3,7 +3,8 @@ import numpy as np
 from layer import Layer
 
 class Network:
-    def __init__(self, input_feature_count: int):
+    """ artificial neural network """
+    def __init__(self, input_feature_count: int = 2):
         self._input_feature_count = input_feature_count
         self._layers: List[Layer] = []
 
@@ -19,8 +20,8 @@ class Network:
               input_sets: np.ndarray,
               target_output: np.ndarray,
               epoch_count: int,
-              learning_rate: float):
-        # TODO: test all of these exceptions
+              learning_rate: float,
+              report_every: int = 2000):
         if input_sets.shape[1] != self._input_feature_count:
             raise ValueError(
                 "input doesn't have the right feature count - " +
@@ -39,7 +40,7 @@ class Network:
                 # print(layer.input)
 
             # report error this epoch
-            if epoch % 40 == 0:
+            if epoch % report_every == 0:
                 mean_sq_error_o = ((target_output - self._layers[-1].output) ** 2) / 2
                 error_sum = mean_sq_error_o.sum()
                 print("error sum:", error_sum)
@@ -70,3 +71,24 @@ class Network:
         for i in range(1, len(self._layers)):
             self._layers[i].input = self._layers[i-1].output
         return self._layers[-1].output
+
+    def __repr__(self):
+        to_return = "features " + str(self._input_feature_count)
+        for layer in self._layers:
+            to_return += "\n" + str(layer)
+        return to_return
+
+    def load_from_str(self, _repr: str):
+        """ invert the __repr__ function
+        to produce the network from the string produced by __repr__ """
+        lines = _repr.splitlines()
+        self._input_feature_count = int(lines[0][9:])
+        self._layers = []
+        i = 1
+        while i < len(lines):
+            group_for_layer = [lines[i]]
+            i += 1
+            while (i < len(lines)) and not lines[i].startswith("layer"):
+                group_for_layer.append(lines[i])
+                i += 1
+            self._layers.append(Layer(group_for_layer))
