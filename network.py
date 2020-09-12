@@ -78,10 +78,10 @@ class Network:
             to_return += "\n" + str(layer)
         return to_return
 
-    def load_from_str(self, _repr: str):
+    def load_from_str(self, repr_: str):
         """ invert the __repr__ function
         to produce the network from the string produced by __repr__ """
-        lines = _repr.splitlines()
+        lines = repr_.splitlines()
         self._input_feature_count = int(lines[0][9:])
         self._layers = []
         i = 1
