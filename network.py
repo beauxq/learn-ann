@@ -22,6 +22,7 @@ class Network:
               epoch_count: int,
               learning_rate: float,
               report_every: int = 2000):
+        """ report_every can be 0 to never report error """
         if input_sets.shape[1] != self._input_feature_count:
             raise ValueError(
                 "input doesn't have the right feature count - " +
@@ -33,6 +34,7 @@ class Network:
         if target_output.shape[1] != self._layers[-1].neuron_count:
             raise ValueError("target_output shape doesn't match output layer - " +
                              str(target_output.shape[1]))
+
         for epoch in range(epoch_count):
             for i, layer in enumerate(self._layers):
                 # print("layer", layer)
@@ -40,7 +42,7 @@ class Network:
                 # print(layer.input)
 
             # report error this epoch
-            if epoch % report_every == 0:
+            if (report_every > 0) and (epoch % report_every) == 0:
                 mean_sq_error_o = ((target_output - self._layers[-1].output) ** 2) / 2
                 error_sum = mean_sq_error_o.sum()
                 print("error sum:", error_sum)
