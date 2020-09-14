@@ -44,9 +44,12 @@ class Layer:
         if isinstance(neuron_count_or_string_list, int):
             neuron_count = neuron_count_or_string_list
             self._weights = np.array(
-                [[random() for __ in range(neuron_count)] for _ in range(neuron_count_previous)]
+                [
+                    [random() - 0.5 for __ in range(neuron_count)]
+                    for _ in range(neuron_count_previous)
+                ]
             )
-            self._biases = np.array([random() for _ in range(neuron_count)])
+            self._biases = np.array([random() - 0.5 for _ in range(neuron_count)])
             self.activation: type = activation
         else:  # string list
             self.load_from_strings(neuron_count_or_string_list)
