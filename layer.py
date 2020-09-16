@@ -54,22 +54,25 @@ class Layer:
         else:  # string list
             self.load_from_strings(neuron_count_or_string_list)
 
+        # null numpy array
+        na = np.ndarray((0,))
+
         # commonly labeled "z" in information on ANNs
-        self._weighted_sum_before_activation: np.ndarray = np.ndarray((0,))
+        self._weighted_sum_before_activation: np.ndarray = na
         # commonly labeled "a" in information on ANNs
         # after activation function
-        self._output: np.ndarray = np.ndarray((0,))
+        self._output: np.ndarray = na
 
         # output from previous layer
-        self._input: np.ndarray = np.ndarray((0,))
+        self._input: np.ndarray = na
         self._dirty = True  # output needs to be recalculated
 
         # all the derivatives
-        self.derror_dout: np.ndarray = np.ndarray((0,))  # der of error with respect to output
-        self.dout_dz: np.ndarray = np.ndarray((0,))  # der of output with respect to z
-        self.dz_dw: np.ndarray = np.ndarray((0,))  # der of z with respect to weights
-        self.derror_dz: np.ndarray = np.ndarray((0,))  # der of error with respect to z
-        self.derror_dw: np.ndarray = np.ndarray((0,))  # der of error with respect to weights
+        self.derror_dout: np.ndarray = na  # of error with respect to output
+        self.dout_dz: np.ndarray = na  # of output with respect to z
+        self.dz_dw: np.ndarray = na  # of z with respect to weights
+        self.derror_dz: np.ndarray = na  # of error with respect to z (also error with respect to bias)
+        self.derror_dw: np.ndarray = na  # of error with respect to weights
 
     def __repr__(self):
         to_return = "layer " + str(self.activation.__name__) + "\n"
