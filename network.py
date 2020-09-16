@@ -51,12 +51,12 @@ class Network:
             for i, layer in reversed(tuple(enumerate(self._layers))):
                 layer.derror_dout = layer.output - target_output \
                     if i == len(self._layers) - 1 \
-                    else np.dot(self._layers[i+1].derror_din, self._layers[i+1].weights.T)
-                layer.dout_din = layer.activation.der(layer.weighted_sum_before_activation)
-                layer.din_dw = input_sets if i == 0 else self._layers[i-1].output
+                    else np.dot(self._layers[i+1].derror_dz, self._layers[i+1].weights.T)
+                layer.dout_dz = layer.activation.der(layer.weighted_sum_before_activation)
+                layer.dz_dw = input_sets if i == 0 else self._layers[i-1].output
 
-                layer.derror_din = layer.derror_dout * layer.dout_din
-                layer.derror_dw = np.dot(layer.din_dw.T, layer.derror_din)
+                layer.derror_dz = layer.derror_dout * layer.dout_dz
+                layer.derror_dw = np.dot(layer.dz_dw.T, layer.derror_dz)
 
             # update weights
             for layer in self._layers:

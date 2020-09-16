@@ -54,17 +54,21 @@ class Layer:
         else:  # string list
             self.load_from_strings(neuron_count_or_string_list)
 
-        self._weighted_sum_before_activation: np.ndarray = np.ndarray((0,))  # z
-        self._output: np.ndarray = np.ndarray((0,))  # after activation function
+        # commonly labeled "z" in information on ANNs
+        self._weighted_sum_before_activation: np.ndarray = np.ndarray((0,))
+        # commonly labeled "a" in information on ANNs
+        # after activation function
+        self._output: np.ndarray = np.ndarray((0,))
 
-        self._input: np.ndarray = np.ndarray((0,))  # from previous layer
+        # output from previous layer
+        self._input: np.ndarray = np.ndarray((0,))
         self._dirty = True  # output needs to be recalculated
 
         # all the derivatives
         self.derror_dout: np.ndarray = np.ndarray((0,))  # der of error with respect to output
-        self.dout_din: np.ndarray = np.ndarray((0,))  # der of output with respect to input
-        self.din_dw: np.ndarray = np.ndarray((0,))  # der of input with respect to weights
-        self.derror_din: np.ndarray = np.ndarray((0,))  # der of error with respect to input
+        self.dout_dz: np.ndarray = np.ndarray((0,))  # der of output with respect to z
+        self.dz_dw: np.ndarray = np.ndarray((0,))  # der of z with respect to weights
+        self.derror_dz: np.ndarray = np.ndarray((0,))  # der of error with respect to z
         self.derror_dw: np.ndarray = np.ndarray((0,))  # der of error with respect to weights
 
     def __repr__(self):
@@ -83,6 +87,7 @@ class Layer:
         while (i < len(repr_list)) and (repr_list[i] != "biases:"):
             weights_expression += repr_list[i]
             i += 1
+        # TODO: SECURITY ISSUE: parse these instead of using eval
         self.weights = eval("np." + weights_expression)
         i += 1  # skip biases label
         biases_expression = ""
@@ -153,7 +158,7 @@ class Layer:
         self._weights -= learning_rate * self.derror_dw
         # print("update biases")
         # print(self._biases)
-        # print(self._derror_din)
-        for one_for_each_input_set in self.derror_din:
+        # print(self._derror_dz)
+        for one_for_each_input_set in self.derror_dz:
             self._biases -= learning_rate * one_for_each_input_set
         self._dirty = True
