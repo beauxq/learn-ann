@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from random import random
 from typing import List, Union, Optional
 import numpy as np
 
@@ -26,6 +25,18 @@ class Layer:
             sx = Layer.Sigmoid.f(x)
             return sx * (1 - sx)
 
+    class TanH(Activation):
+        """ tanh activation function """
+        @staticmethod
+        def f(x):
+            ex = np.exp(x)
+            enx = np.exp(-x)
+            return (ex - enx) / (ex + enx)
+
+        @staticmethod
+        def der(x):
+            return 1 - np.power(Layer.TanH.f(x), 2)
+
     class ReLU(Activation):
         """ rectified linear unit activation function """
         @staticmethod
@@ -35,6 +46,43 @@ class Layer:
         @staticmethod
         def der(x):
             return 1 * (x > 0)
+
+    class TruncatedSQRT(Activation):
+        """ truncated square root """
+        origin_slope = 4
+        assert origin_slope > 0
+        b = 1 / (origin_slope * 2)
+        a = b * b
+
+        @staticmethod
+        def f(x):
+            # possible low level optimization:
+            # use a bitmask to take only the sign bit of x
+            # "xor" or "or" with the result of (sqrt(abs(x) + a) - b)
+            return np.sign(x) * (np.sqrt(np.abs(x) + Layer.TruncatedSQRT.a) - Layer.TruncatedSQRT.b)
+
+        @staticmethod
+        def der(x):
+            return 1 / (2 * np.sqrt(np.abs(x) + Layer.TruncatedSQRT.a))
+
+    class SqrtToLinear(Activation):
+        """ truncated sqrt when negative,
+        linear when positive """
+        linear_slope = 1
+        assert linear_slope > 0
+        b = 1 / (linear_slope * 2)
+        a = b * b
+
+        @staticmethod
+        def f(x):
+            return ((x >= 0) * (Layer.SqrtToLinear.linear_slope * x)
+                    + (x < 0) * (-(np.sqrt(-x + Layer.SqrtToLinear.a)
+                                   - Layer.SqrtToLinear.b)))
+
+        @staticmethod
+        def der(x):
+            return ((x >= 0) * (Layer.SqrtToLinear.linear_slope)
+                    + (x < 0) * (1 / (2 * np.sqrt(-x + Layer.SqrtToLinear.a))))
 
     def __init__(self,
                  neuron_count_or_string_list: Union[int, List[str]],

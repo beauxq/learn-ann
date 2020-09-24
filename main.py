@@ -11,7 +11,7 @@ def main():
     output_feature_count = len(target_output[0])
 
     neuron_counts_in_hidden_layers = [5, 3]
-    hidden_activation = Layer.Sigmoid
+    hidden_activation = Layer.TruncatedSQRT
     epoch_count = 40000
     learning_rate = 0.0625
 
