@@ -47,6 +47,30 @@ class Layer:
         def der(x):
             return 1 * (x > 0)
 
+    class ELU(Activation):
+        """ exponential linear unit
+        not parametric """
+        @staticmethod
+        def f(x):
+            return (x >= 0) * x + (x < 0) * (np.exp(x) -1)
+
+        @staticmethod
+        def der(x):
+            return np.minimum(np.exp(x), 1)
+
+    class Swish(Activation):
+        """ Swish https://arxiv.org/pdf/1710.05941v2.pdf """
+        b = 1
+
+        @staticmethod
+        def f(x):
+            return x * Layer.Sigmoid.f(Layer.Swish.b * x)
+
+        @staticmethod
+        def der(x):
+            return Layer.Swish.b * Layer.Swish.f(x) + \
+                Layer.Sigmoid.f(Layer.Swish.b * x) * (1 - Layer.Swish.b * Layer.Swish.f(x))
+
     class TruncatedSQRT(Activation):
         """ truncated square root """
         origin_slope = 4
