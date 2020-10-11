@@ -37,6 +37,7 @@ class Network:
 
         for epoch in range(epoch_count):
             for i, layer in enumerate(self._layers):
+                # print("layer i", i)
                 # print("layer", layer)
                 layer.input = self._layers[i - 1].output if i > 0 else input_sets
                 # print(layer.input)
@@ -52,8 +53,16 @@ class Network:
                 layer.derror_dout = layer.output - target_output \
                     if i == len(self._layers) - 1 \
                     else np.dot(self._layers[i+1].derror_dz, self._layers[i+1].weights.T)
+                # print("on last layer:", i == len(self._layers) - 1)
+                # print("layer.output", layer.output, sep="/n")
+                # print("target_output", target_output, sep="/n")
+                # if i != len(self._layers) - 1:
+                #     print("i+1 de_dz:", self._layers[i+1].derror_dz, sep="\n")
+                # print("derror_dout:", layer.derror_dout, sep="/n")
                 layer.dout_dz = layer.activation.der(layer.weighted_sum_before_activation)
+                # print("dout_dz:", layer.dout_dz, sep="\n")
                 layer.dz_dw = input_sets if i == 0 else self._layers[i-1].output
+                # print("dz_dw:", layer.dz_dw, "\n")
 
                 layer.derror_dz = layer.derror_dout * layer.dout_dz
                 layer.derror_dw = np.dot(layer.dz_dw.T, layer.derror_dz)
