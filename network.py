@@ -8,13 +8,13 @@ class Network:
         self._input_feature_count = input_feature_count
         self._layers: List[Layer] = []
 
-    def add_layer(self, neuron_count: int, activation: type):
+    def add_layer(self, neuron_count: int, activation: type, random_init=True):
         if not issubclass(activation, Layer.Activation):
             raise ValueError("activation should subclass of Layer.Activation")
         neuron_count_previous = len(self._layers[-1].weights[0]) \
             if len(self._layers) > 0 \
             else self._input_feature_count
-        self._layers.append(Layer(neuron_count, neuron_count_previous, activation))
+        self._layers.append(Layer(neuron_count, neuron_count_previous, activation, random_init))
 
     def train(self,
               input_sets: np.ndarray,

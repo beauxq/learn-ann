@@ -111,12 +111,22 @@ class Layer:
     def __init__(self,
                  neuron_count_or_string_list: Union[int, List[str]],
                  neuron_count_previous: Optional[int] = None,
-                 activation: Optional[type] = None):
+                 activation: Optional[type] = None,
+                 random_init = True):
         # overloaded
         if isinstance(neuron_count_or_string_list, int):
             neuron_count = neuron_count_or_string_list
             self._weights = np.random.rand(neuron_count_previous, neuron_count) * 4 - 2
+            if not random_init:
+                interval = 4.0 / (neuron_count_previous * neuron_count)
+                v = -1.995
+                for row in range(neuron_count_previous):
+                    for col in range(neuron_count):
+                        self._weights[row][col] = v
+                        v += interval
             self._biases = np.random.rand(neuron_count) * 4 - 2
+            if not random_init:
+                self._biases = np.zeros((1, neuron_count))
             self.activation: type = activation
         else:  # string list
             self.load_from_strings(neuron_count_or_string_list)
