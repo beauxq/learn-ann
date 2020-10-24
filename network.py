@@ -22,7 +22,11 @@ class Network:
               epoch_count: int,
               learning_rate: float,
               report_every: int = 2000):
-        """ report_every can be 0 to never report error """
+        """ report_every can be 0 to never report error values,
+        which means report_every can be bool for
+        never report error values
+        or
+        always report error values """
         if input_sets.shape[1] != self._input_feature_count:
             raise ValueError(
                 "input doesn't have the right feature count - " +
