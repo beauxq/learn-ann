@@ -100,3 +100,23 @@ class Network:
                 group_for_layer.append(lines[i])
                 i += 1
             self._layers.append(Layer(group_for_layer))
+
+# I can't see any reason to use softmax as an activation function
+# I can't even find any claims that it helps with accuracy, much less any evidence.
+# Lots of people talk about how useful it is,
+#   but that's not a reason to put it in a neural network.
+# If you want softmax, take your output from the neural network,
+#   and put it through a softmax function.
+def softmax(x: np.ndarray) -> np.ndarray:
+    """ stable softmax """
+    shift_x = x - np.max(x)
+    ex = np.exp(shift_x)
+    return ex / np.sum(ex)
+
+def _test():
+    print(softmax([0.2, 0.5, 0.3]))
+    # It doesn't even do the job well...
+    # If I already have a probability distribution, why change it?
+
+if __name__ == "__main__":
+    _test()
