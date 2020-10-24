@@ -64,6 +64,8 @@ class Network:
 
     def predict(self, input_set: np.ndarray) -> np.ndarray:
         """ return prediction based on current model """
+        if len(input_set.shape) < 2:
+            input_set = np.array([input_set])
         if input_set.shape[1] != self._input_feature_count:
             raise ValueError(
                 "input doesn't have the right feature count - " +
