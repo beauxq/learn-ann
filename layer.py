@@ -115,6 +115,8 @@ class Layer:
                  random_init = True):
         # overloaded
         if isinstance(neuron_count_or_string_list, int):
+            assert neuron_count_previous is not None
+            assert activation is not None
             neuron_count = neuron_count_or_string_list
             self._weights = np.random.rand(neuron_count_previous, neuron_count) * 4 - 2
             if not random_init:
@@ -226,7 +228,7 @@ class Layer:
         # print(np.dot(self._input, self._weights))
         # print("after biases:")
         # print(self._weighted_sum_before_activation)
-        self._output = self.activation.f(self._weighted_sum_before_activation)
+        self._output = self.activation.f(self._weighted_sum_before_activation)  # type: ignore
         self._dirty = False
 
     def update(self, learning_rate: float):
