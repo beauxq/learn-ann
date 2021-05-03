@@ -124,7 +124,7 @@ def softmax(x: np.ndarray) -> np.ndarray:
     return ex / np.sum(ex)
 
 def _test():
-    print(softmax([0.2, 0.5, 0.3]))
+    print(softmax(np.array([0.2, 0.5, 0.3])))
     # It doesn't even do the job well...
     # If I already have a probability distribution, why change it?
 
