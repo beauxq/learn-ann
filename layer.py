@@ -100,13 +100,13 @@ class Layer:
         @staticmethod
         def f(x):
             return ((x >= 0) * (Layer.SqrtToLinear.linear_slope * x)
-                    + (x < 0) * (-(np.sqrt(-x + Layer.SqrtToLinear.a)
+                    + (x < 0) * (-(np.sqrt(np.abs(x) + Layer.SqrtToLinear.a)
                                    - Layer.SqrtToLinear.b)))
 
         @staticmethod
         def der(x):
             return ((x >= 0) * (Layer.SqrtToLinear.linear_slope)
-                    + (x < 0) * (1 / (2 * np.sqrt(-x + Layer.SqrtToLinear.a))))
+                    + (x < 0) * (1 / (2 * np.sqrt(np.abs(x) + Layer.SqrtToLinear.a))))
 
     def __init__(self,
                  neuron_count_or_string_list: Union[int, List[str]],
