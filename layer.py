@@ -6,12 +6,12 @@ class Layer:
     class Activation(ABC):
         @staticmethod
         @abstractmethod
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             """ activation function """
 
         @staticmethod
         @abstractmethod
-        def der(x):
+        def der(x: np.ndarray) -> np.ndarray:
             """ derivative of activation function """
 
     class Sigmoid(Activation):
