@@ -16,6 +16,34 @@ class Network:
             else self._input_feature_count
         self._layers.append(Layer(neuron_count, neuron_count_previous, activation, random_init))
 
+    def _gradient_descent(self,
+                          input_sets: np.ndarray,
+                          target_output: np.ndarray,
+                          learning_rate: float):
+        # backpropagation
+        for i, layer in reversed(tuple(enumerate(self._layers))):
+            layer.derror_dout = layer.output - target_output \
+                if i == len(self._layers) - 1 \
+                else np.dot(self._layers[i+1].derror_dz, self._layers[i+1].weights.T)
+            # print("on last layer:", i == len(self._layers) - 1)
+            # print("layer.output", layer.output, sep="/n")
+            # print("target_output", target_output, sep="/n")
+            # if i != len(self._layers) - 1:
+            #     print("i+1 de_dz:", self._layers[i+1].derror_dz, sep="\n")
+            # print("derror_dout:", layer.derror_dout, sep="/n")
+            # activation type is asserted in Layer ctor
+            layer.dout_dz = layer.activation.der(layer.weighted_sum_before_activation)  # type: ignore
+            # print("dout_dz:", layer.dout_dz, sep="\n")
+            layer.dz_dw = input_sets if i == 0 else self._layers[i-1].output
+            # print("dz_dw:", layer.dz_dw, "\n")
+
+            layer.derror_dz = layer.derror_dout * layer.dout_dz
+            layer.derror_dw = np.dot(layer.dz_dw.T, layer.derror_dz)
+
+        # update weights
+        for layer in self._layers:
+            layer.update(learning_rate)
+
     def train(self,
               input_sets: np.ndarray,
               target_output: np.ndarray,
@@ -51,30 +79,8 @@ class Network:
                 mean_sq_error_o = ((target_output - self._layers[-1].output) ** 2) / 2
                 error_sum = mean_sq_error_o.sum()
                 print("error sum:", error_sum)
-
-            # backpropagation
-            for i, layer in reversed(tuple(enumerate(self._layers))):
-                layer.derror_dout = layer.output - target_output \
-                    if i == len(self._layers) - 1 \
-                    else np.dot(self._layers[i+1].derror_dz, self._layers[i+1].weights.T)
-                # print("on last layer:", i == len(self._layers) - 1)
-                # print("layer.output", layer.output, sep="/n")
-                # print("target_output", target_output, sep="/n")
-                # if i != len(self._layers) - 1:
-                #     print("i+1 de_dz:", self._layers[i+1].derror_dz, sep="\n")
-                # print("derror_dout:", layer.derror_dout, sep="/n")
-                # activation type is asserted in Layer ctor
-                layer.dout_dz = layer.activation.der(layer.weighted_sum_before_activation)  # type: ignore
-                # print("dout_dz:", layer.dout_dz, sep="\n")
-                layer.dz_dw = input_sets if i == 0 else self._layers[i-1].output
-                # print("dz_dw:", layer.dz_dw, "\n")
-
-                layer.derror_dz = layer.derror_dout * layer.dout_dz
-                layer.derror_dw = np.dot(layer.dz_dw.T, layer.derror_dz)
-
-            # update weights
-            for layer in self._layers:
-                layer.update(learning_rate)
+            self._gradient_descent(input_sets, target_output, learning_rate)
+            # self._evolve(input_sets, target_output, epoch, learning_rate, report_every)
 
     def predict(self, input_set: np.ndarray) -> np.ndarray:
         """ return prediction based on current model """
