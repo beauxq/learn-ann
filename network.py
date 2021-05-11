@@ -3,7 +3,11 @@ import numpy as np
 from layer import Layer
 
 class Network:
-    """ artificial neural network """
+    """
+    artificial neural network
+
+    can be copied with Python's `deepcopy` for evolution algorithms
+    """
     def __init__(self, input_feature_count: int = 2):
         self._input_feature_count = input_feature_count
         self._layers: List[Layer] = []
@@ -80,7 +84,6 @@ class Network:
                 error_sum = mean_sq_error_o.sum()
                 print("error sum:", error_sum)
             self._gradient_descent(input_sets, target_output, learning_rate)
-            # self._evolve(input_sets, target_output, epoch, learning_rate, report_every)
 
     def predict(self, input_set: np.ndarray) -> np.ndarray:
         """ return prediction based on current model """
@@ -95,6 +98,11 @@ class Network:
         for i in range(1, len(self._layers)):
             self._layers[i].input = self._layers[i-1].output
         return self._layers[-1].output
+
+    def mutate(self, rate: float):
+        """ change network randomly """
+        for layer in self._layers:
+            layer.mutate(rate)
 
     def __repr__(self):
         to_return = "features " + str(self._input_feature_count)

@@ -1,6 +1,9 @@
+from copy import deepcopy
 import numpy as np
 from layer import Layer
 from network import Network
+
+GD = False  # gradient descent or evolution
 
 def main():
     # 4 input sets, 2 input features
@@ -13,7 +16,7 @@ def main():
     neuron_counts_in_hidden_layers = [5, 3]
     hidden_activation = Layer.TruncatedSQRT
     epoch_count = 40000
-    learning_rate = 0.0625
+    learning_rate = 0.0625 if GD else 8.0
 
     test_input = np.array([[1, 1], [0, 1], [0, 0], [1, 0]])
 
@@ -22,7 +25,22 @@ def main():
         net.add_layer(neuron_count, hidden_activation)
     net.add_layer(output_feature_count, Layer.Sigmoid)
 
-    net.train(input_sets, target_output, epoch_count, learning_rate)
+    if GD:
+        net.train(input_sets, target_output, epoch_count, learning_rate)
+    else:
+        # evolution
+        for epoch in range(epoch_count):
+            netcopy = deepcopy(net)
+            netcopy.mutate(learning_rate)
+            net_error = np.abs(target_output - net.predict(input_sets)).sum()
+            cop_error = np.abs(target_output - netcopy.predict(input_sets)).sum()
+            if epoch % 2000 == 0:
+                print(net_error, cop_error)
+            if cop_error < net_error:
+                net = netcopy
+                if cop_error < 0.00001:
+                    print("cutting training at epoch", epoch)
+                    break
 
     # test save and load in string
     # print(net)

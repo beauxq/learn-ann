@@ -246,3 +246,27 @@ class Layer:
         for one_for_each_input_set in self.derror_dz:
             self._biases -= learning_rate * one_for_each_input_set
         self._dirty = True
+
+    def __getstate__(self) -> dict:
+        """ This is called on the source of Python's `deepcopy` """
+        return {
+            'activation': self.activation,
+            '_weights': np.copy(self._weights),
+            '_biases': np.copy(self._biases)
+        }
+
+    def __setstate__(self, state: dict):
+        """ This is called on the destination of Python's `deepcopy` """
+        self.activation = state['activation']
+        self._weights = state['_weights']
+        self._biases = state['_biases']
+        self._dirty = True
+
+    def mutate(self, max_amount: float):
+        """ change layer randomly (for evolution algorithms) """
+        _range = max_amount * 2
+        self._weights += np.random.rand(self._weights.shape[0], self._weights.shape[1]) \
+            * _range - max_amount
+        self._biases += np.random.rand(self._biases.shape[0]) \
+            * _range - max_amount
+        self._dirty = True
