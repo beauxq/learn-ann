@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Union, Optional
+from typing import Any, List, Union, Optional, Dict
 import numpy as np
 
 class Layer:
@@ -17,45 +17,45 @@ class Layer:
     class Sigmoid(Activation):
         """ sigmoid activation function """
         @staticmethod
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             return 1 / (1 + np.exp(-x))
 
         @staticmethod
-        def der(x):
+        def der(x: np.ndarray) -> np.ndarray:
             sx = Layer.Sigmoid.f(x)
             return sx * (1 - sx)
 
     class TanH(Activation):
         """ tanh activation function """
         @staticmethod
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             ex = np.exp(x)
             enx = np.exp(-x)
             return (ex - enx) / (ex + enx)
 
         @staticmethod
-        def der(x):
+        def der(x: np.ndarray) -> np.ndarray:
             return 1 - np.power(Layer.TanH.f(x), 2)
 
     class ReLU(Activation):
         """ rectified linear unit activation function """
         @staticmethod
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             return np.maximum(0, x)
 
         @staticmethod
-        def der(x):
+        def der(x: np.ndarray) -> np.ndarray:
             return 1 * (x > 0)
 
     class ELU(Activation):
         """ exponential linear unit
         not parametric """
         @staticmethod
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             return (x >= 0) * x + (x < 0) * (np.exp(x) -1)
 
         @staticmethod
-        def der(x):
+        def der(x: np.ndarray) -> np.ndarray:
             return np.minimum(np.exp(x), 1)
 
     class Swish(Activation):
@@ -63,11 +63,11 @@ class Layer:
         b = 1
 
         @staticmethod
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             return x * Layer.Sigmoid.f(Layer.Swish.b * x)
 
         @staticmethod
-        def der(x):
+        def der(x: np.ndarray) -> np.ndarray:
             return Layer.Swish.b * Layer.Swish.f(x) + \
                 Layer.Sigmoid.f(Layer.Swish.b * x) * (1 - Layer.Swish.b * Layer.Swish.f(x))
 
@@ -79,14 +79,14 @@ class Layer:
         a = b * b
 
         @staticmethod
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             # possible low level optimization:
             # use a bitmask to take only the sign bit of x
             # "xor" or "or" with the result of (sqrt(abs(x) + a) - b)
             return np.sign(x) * (np.sqrt(np.abs(x) + Layer.TruncatedSQRT.a) - Layer.TruncatedSQRT.b)
 
         @staticmethod
-        def der(x):
+        def der(x: np.ndarray) -> np.ndarray:
             return 1 / (2 * np.sqrt(np.abs(x) + Layer.TruncatedSQRT.a))
 
     class SqrtToLinear(Activation):
@@ -98,13 +98,13 @@ class Layer:
         a = b * b
 
         @staticmethod
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             return ((x >= 0) * (Layer.SqrtToLinear.linear_slope * x)
                     + (x < 0) * (-(np.sqrt(np.abs(x) + Layer.SqrtToLinear.a)
                                    - Layer.SqrtToLinear.b)))
 
         @staticmethod
-        def der(x):
+        def der(x: np.ndarray) -> np.ndarray:
             return ((x >= 0) * (Layer.SqrtToLinear.linear_slope)
                     + (x < 0) * (1 / (2 * np.sqrt(np.abs(x) + Layer.SqrtToLinear.a))))
 
@@ -112,14 +112,14 @@ class Layer:
                  neuron_count_or_string_list: Union[int, List[str]],
                  neuron_count_previous: Optional[int] = None,
                  activation: Optional[type] = None,
-                 random_init = True):
+                 random_init: bool = True):
         # overloaded
         if isinstance(neuron_count_or_string_list, int):
             assert isinstance(neuron_count_previous, int)
             assert isinstance(activation, type)
             assert issubclass(activation, Layer.Activation)
             neuron_count = neuron_count_or_string_list
-            self._weights = np.random.rand(neuron_count_previous, neuron_count) * 4 - 2
+            self._weights: np.ndarray = np.random.rand(neuron_count_previous, neuron_count) * 4 - 2
             if not random_init:
                 interval = 4.0 / (neuron_count_previous * neuron_count)
                 v = -1.995
@@ -127,7 +127,7 @@ class Layer:
                     for col in range(neuron_count):
                         self._weights[row][col] = v
                         v += interval
-            self._biases = np.random.rand(neuron_count) * 4 - 2
+            self._biases: np.ndarray = np.random.rand(neuron_count) * 4 - 2
             if not random_init:
                 self._biases = np.zeros((1, neuron_count))
             self.activation: type = activation
@@ -247,7 +247,7 @@ class Layer:
             self._biases -= learning_rate * one_for_each_input_set
         self._dirty = True
 
-    def __getstate__(self) -> dict:
+    def __getstate__(self) -> Dict[str, Any]:
         """ This is called on the source of Python's `deepcopy` """
         return {
             'activation': self.activation,
@@ -255,7 +255,7 @@ class Layer:
             '_biases': np.copy(self._biases)
         }
 
-    def __setstate__(self, state: dict):
+    def __setstate__(self, state: Dict[str, Any]):
         """ This is called on the destination of Python's `deepcopy` """
         self.activation = state['activation']
         self._weights = state['_weights']

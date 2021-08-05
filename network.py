@@ -12,7 +12,7 @@ class Network:
         self._input_feature_count = input_feature_count
         self._layers: List[Layer] = []
 
-    def add_layer(self, neuron_count: int, activation: type, random_init=True):
+    def add_layer(self, neuron_count: int, activation: type, random_init: bool=True):
         if not issubclass(activation, Layer.Activation):
             raise ValueError("activation should be subclass of Layer.Activation")
         neuron_count_previous = len(self._layers[-1].weights[0]) \
