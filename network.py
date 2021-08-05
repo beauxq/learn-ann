@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import numpy as np
 from layer import Layer
 
@@ -47,29 +47,49 @@ class Network:
         # update weights
         for layer in self._layers:
             layer.update(learning_rate)
+    
+    def _mse(self, target_output: np.ndarray) -> float:
+        """ mean squared error """
+        squared_error: np.ndarray = np.power(target_output - self._layers[-1].output, 2)
+        # print("target:\n", target_output)
+        # print("output:\n", self._layers[-1].output)
+        # print("differ:\n", target_output - self._layers[-1].output)
+        # print("square:\n", squared_error)
+
+        # np.mean gives a float whether target is 1d or 2d - type checker doesn't like it
+        return np.mean(squared_error)  # type: ignore
+    
+    def verify_shapes(self, input_sets: np.ndarray, target_output: Optional[np.ndarray]=None) -> None:
+        """ raises exception if dimensions don't match """
+        if input_sets.shape[1] != self._input_feature_count:
+            raise ValueError(
+                "input doesn't have the right feature count - " +
+                str(input_sets.shape) + " " + str(self._layers[0].weights.shape)
+            )
+        if target_output is not None:
+            if input_sets.shape[0] != target_output.shape[0]:
+                raise ValueError("input and output sizes don't match - shapes " +
+                                str(input_sets.shape) + " " + str(target_output.shape))
+            if target_output.shape[1] != self._layers[-1].neuron_count:
+                raise ValueError("target_output shape doesn't match output layer - " +
+                                str(target_output.shape[1]))
 
     def train(self,
               input_sets: np.ndarray,
               target_output: np.ndarray,
               epoch_count: int,
               learning_rate: float,
-              report_every: int = 2000):
-        """ report_every can be 0 to never report error values,
-        which means report_every can be bool for
+              report_every: int = 2000) -> float:
+        """
+        `report_every` can be `0` to never report error values,
+        which means `report_every` can be `bool` for
         never report error values
         or
-        always report error values """
-        if input_sets.shape[1] != self._input_feature_count:
-            raise ValueError(
-                "input doesn't have the right feature count - " +
-                str(input_sets.shape) + " " + str(self._layers[0].weights.shape)
-            )
-        if input_sets.shape[0] != target_output.shape[0]:
-            raise ValueError("input and output sizes don't match - shapes " +
-                             str(input_sets.shape) + " " + str(target_output.shape))
-        if target_output.shape[1] != self._layers[-1].neuron_count:
-            raise ValueError("target_output shape doesn't match output layer - " +
-                             str(target_output.shape[1]))
+        always report error values
+        
+        returns the ending mean squared error
+        """
+        self.verify_shapes(input_sets, target_output)
 
         for epoch in range(epoch_count):
             for i, layer in enumerate(self._layers):
@@ -80,20 +100,18 @@ class Network:
 
             # report error this epoch
             if (report_every > 0) and (epoch % report_every) == 0:
-                mean_sq_error_o = ((target_output - self._layers[-1].output) ** 2) / 2
-                error_sum = mean_sq_error_o.sum()
-                print("error sum:", error_sum)
+                error_mean = self._mse(target_output)
+                print("error mean:", error_mean)
             self._gradient_descent(input_sets, target_output, learning_rate)
+
+        return self._mse(target_output)
 
     def predict(self, input_set: np.ndarray) -> np.ndarray:
         """ return prediction based on current model """
         if len(input_set.shape) < 2:
             input_set = np.array([input_set])
-        if input_set.shape[1] != self._input_feature_count:
-            raise ValueError(
-                "input doesn't have the right feature count - " +
-                str(input_set.shape) + " " + str(self._layers[0].weights.shape)
-            )
+        self.verify_shapes(input_set)
+
         self._layers[0].input = input_set
         for i in range(1, len(self._layers)):
             self._layers[i].input = self._layers[i-1].output
