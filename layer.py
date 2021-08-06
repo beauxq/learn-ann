@@ -68,8 +68,8 @@ class Layer:
 
         @staticmethod
         def der(x: np.ndarray) -> np.ndarray:
-            return Layer.Swish.b * Layer.Swish.f(x) + \
-                Layer.Sigmoid.f(Layer.Swish.b * x) * (1 - Layer.Swish.b * Layer.Swish.f(x))
+            b_swish = Layer.Swish.b * Layer.Swish.f(x)
+            return b_swish + Layer.Sigmoid.f(Layer.Swish.b * x) * (1 - b_swish)
 
     class TruncatedSQRT(Activation):
         """ truncated square root """
