@@ -89,6 +89,17 @@ class Layer:
         def der(x: np.ndarray) -> np.ndarray:
             return 1 / (2 * np.sqrt(np.abs(x) + Layer.TruncatedSQRT.a))
 
+    class SQRT(Activation):
+        """ square root (not truncated) """
+
+        @staticmethod
+        def f(x: np.ndarray) -> np.ndarray:
+            return np.sign(x) * (np.sqrt(np.abs(x)))
+
+        @staticmethod
+        def der(x: np.ndarray) -> np.ndarray:
+            return 1 / (2 * np.sqrt(np.abs(x)) + 1e-307)
+
     class SqrtToLinear(Activation):
         """ truncated sqrt when negative,
         linear when positive """
