@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Union, Optional, Dict
+from typing import Any, List, Union, Optional, Dict, Type
 import numpy as np
 
 class Layer:
@@ -122,7 +122,7 @@ class Layer:
     def __init__(self,
                  neuron_count_or_string_list: Union[int, List[str]],
                  neuron_count_previous: Optional[int] = None,
-                 activation: Optional[type] = None,
+                 activation: Optional[Type["Layer.Activation"]] = None,
                  random_init: bool = True):
         # overloaded
         if isinstance(neuron_count_or_string_list, int):
@@ -141,7 +141,7 @@ class Layer:
             self._biases: np.ndarray = np.random.rand(neuron_count) * 4 - 2
             if not random_init:
                 self._biases = np.zeros((1, neuron_count))
-            self.activation: type = activation
+            self.activation: Type["Layer.Activation"] = activation
         else:  # string list
             self.load_from_strings(neuron_count_or_string_list)
 
@@ -240,8 +240,7 @@ class Layer:
         # print(np.dot(self._input, self._weights))
         # print("after biases:")
         # print(self._weighted_sum_before_activation)
-        # activation type is asserted in ctor
-        self._output = self.activation.f(self._weighted_sum_before_activation)  # type: ignore
+        self._output = self.activation.f(self._weighted_sum_before_activation)
         self._dirty = False
 
     def update(self, learning_rate: float):

@@ -35,8 +35,7 @@ class Network:
             # if i != len(self._layers) - 1:
             #     print("i+1 de_dz:", self._layers[i+1].derror_dz, sep="\n")
             # print("derror_dout:", layer.derror_dout, sep="/n")
-            # activation type is asserted in Layer ctor
-            layer.dout_dz = layer.activation.der(layer.weighted_sum_before_activation)  # type: ignore
+            layer.dout_dz = layer.activation.der(layer.weighted_sum_before_activation)
             # print("dout_dz:", layer.dout_dz, sep="\n")
             layer.dz_dw = input_sets if i == 0 else self._layers[i-1].output
             # print("dz_dw:", layer.dz_dw, "\n")
@@ -102,6 +101,7 @@ class Network:
             if (report_every > 0) and (epoch % report_every) == 0:
                 error_mean = self._mse(target_output)
                 print("error mean:", error_mean)
+
             self._gradient_descent(input_sets, target_output, learning_rate)
 
         return self._mse(target_output)
