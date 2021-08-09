@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Union, Optional, Dict, Type
 import numpy as np
 
+from util import ndarray2str, str2ndarray
+
 class Layer:
     class Activation(ABC):
         @staticmethod
@@ -166,8 +168,12 @@ class Layer:
         self.derror_dw: np.ndarray = na  # of error with respect to weights
 
     def __repr__(self):
+        # TODO: make a warning or something if this activation isn't in layer because I can't load it
+        # or make a system that can save the functions in a string
+        # (in case someone subclasses Layer.Activation without modifying Layer)
         to_return = "layer " + str(self.activation.__name__) + "\n"
-        to_return += "weights:\n" + repr(self._weights) + "\nbiases:\n" + repr(self._biases)
+        to_return += "weights:\n" + ndarray2str(self._weights) + \
+            "\nbiases:\n" + ndarray2str(self._biases)
         return to_return
 
     def load_from_strings(self, repr_list: List[str]):
@@ -181,14 +187,13 @@ class Layer:
         while (i < len(repr_list)) and (repr_list[i] != "biases:"):
             weights_expression += repr_list[i]
             i += 1
-        # TODO: SECURITY ISSUE: parse these instead of using eval
-        self.weights = eval("np." + weights_expression)
+        self.weights = str2ndarray(weights_expression)
         i += 1  # skip biases label
         biases_expression = ""
         while i < len(repr_list):
             biases_expression += repr_list[i]
             i += 1
-        self._biases = eval("np." + biases_expression)
+        self._biases = str2ndarray(biases_expression)
 
     @property
     def output(self):
