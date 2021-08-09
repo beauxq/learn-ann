@@ -1,4 +1,5 @@
 from typing import List, Optional
+from math import ceil
 import numpy as np
 from layer import Layer
 
@@ -90,21 +91,40 @@ class Network:
         """
         self.verify_shapes(input_sets, target_output)
 
-        for epoch in range(epoch_count):
+        # TODO: how do I tune this magic number? what's a good chunk size for large input sets?
+        chunk_size = max(min(128, len(input_sets)), ceil(len(input_sets) / epoch_count))
+        using_chunks = chunk_size < len(input_sets)
+        if using_chunks:
+            print("chunk size:", chunk_size)
+
+        epoch = 0
+        index = 0
+        input_for_this_epoch = input_sets
+        output_for_this_epoch = target_output
+        while epoch < epoch_count:
+            if using_chunks:
+                input_for_this_epoch = input_sets[index:index + chunk_size]
+                output_for_this_epoch = target_output[index:index + chunk_size]
             for i, layer in enumerate(self._layers):
                 # print("layer i", i)
                 # print("layer", layer)
-                layer.input = self._layers[i - 1].output if i > 0 else input_sets
+                layer.input = self._layers[i - 1].output if i > 0 else input_for_this_epoch
                 # print(layer.input)
 
             # report error this epoch
             if (report_every > 0) and (epoch % report_every) == 0:
-                error_mean = self._mse(target_output)
+                error_mean = self._mse(output_for_this_epoch)
                 print("error mean:", error_mean)
 
-            self._gradient_descent(input_sets, target_output, learning_rate)
+            self._gradient_descent(input_for_this_epoch, output_for_this_epoch, learning_rate)
 
-        return self._mse(target_output)
+            if using_chunks:
+                index += chunk_size
+                if index >= len(input_sets):
+                    index = 0
+            epoch += 1
+
+        return self._mse(output_for_this_epoch)
 
     def predict(self, input_set: np.ndarray) -> np.ndarray:
         """ return prediction based on current model """
