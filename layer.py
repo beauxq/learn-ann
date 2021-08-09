@@ -255,6 +255,8 @@ class Layer:
         # print(self._derror_dz)
         for one_for_each_input_set in self.derror_dz:
             self._biases -= learning_rate * one_for_each_input_set
+        # if np.max(self.derror_dw) < 1e-6 and np.max(self.derror_dz) < 1e-6:
+        #     print("update is 0")
         self._dirty = True
 
     def __getstate__(self) -> Dict[str, Any]:
