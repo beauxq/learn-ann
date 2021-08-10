@@ -114,7 +114,7 @@ class Network:
             # report error this epoch
             if (report_every > 0) and (epoch % report_every) == 0:
                 error_mean = self._mse(output_for_this_epoch)
-                print("error mean:", error_mean)
+                print("training mean squared error value:", error_mean)
 
             self._gradient_descent(input_for_this_epoch, output_for_this_epoch, learning_rate)
 
