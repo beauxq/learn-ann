@@ -1,10 +1,10 @@
 from math import ceil
 from typing import List, Optional
-from util import NPArray
 
 import numpy as np
 
-from layer import Layer
+from .layer import Layer
+from .util import NPArray
 
 
 class Network:

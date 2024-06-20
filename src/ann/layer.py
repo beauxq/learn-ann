@@ -3,7 +3,7 @@ from typing import Any, List, Union, Optional, Dict, Type
 
 import numpy as np
 
-from util import NPArray, ndarray2str, str2ndarray
+from .util import NPArray, ndarray2str, str2ndarray
 
 
 class Layer:

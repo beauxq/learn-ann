@@ -2,8 +2,8 @@ from copy import deepcopy
 
 import numpy as np
 
-from layer import Layer
-from network import Network
+from ann.layer import Layer
+from ann.network import Network
 
 GD = False  # gradient descent or evolution
 
