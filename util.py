@@ -1,5 +1,10 @@
-import numpy as np
 import json
+from typing import Any
+
+import numpy as np
+
+NPArray = np.ndarray[Any, Any]
+
 
 def _find_insert_index(s: str, i: int) -> int:
     """
@@ -12,7 +17,8 @@ def _find_insert_index(s: str, i: int) -> int:
         i -= 1
     return i + 1
 
-def ndarray2str(a: np.ndarray) -> str:
+
+def ndarray2str(a: NPArray) -> str:
     lines = json.dumps(a.tolist()).replace("], ", "],\n ").splitlines()
     decimal_counts = [s.count(".") for s in lines]
     if len(set(decimal_counts)) == 1:
@@ -28,5 +34,6 @@ def ndarray2str(a: np.ndarray) -> str:
             start = target + 1
     return '\n'.join(lines)
 
-def str2ndarray(s: str) -> np.ndarray:
+
+def str2ndarray(s: str) -> NPArray:
     return np.array(json.loads(s))

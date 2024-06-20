@@ -1,7 +1,11 @@
-from typing import List, Optional
 from math import ceil
+from typing import List, Optional
+from util import NPArray
+
 import numpy as np
+
 from layer import Layer
+
 
 class Network:
     """
@@ -13,7 +17,7 @@ class Network:
         self._input_feature_count = input_feature_count
         self._layers: List[Layer] = []
 
-    def add_layer(self, neuron_count: int, activation: type, random_init: bool=True):
+    def add_layer(self, neuron_count: int, activation: type, random_init: bool = True):
         if not issubclass(activation, Layer.Activation):
             raise ValueError("activation should be subclass of Layer.Activation")
         neuron_count_previous = len(self._layers[-1].weights[0]) \
@@ -22,8 +26,8 @@ class Network:
         self._layers.append(Layer(neuron_count, neuron_count_previous, activation, random_init))
 
     def _gradient_descent(self,
-                          input_sets: np.ndarray,
-                          target_output: np.ndarray,
+                          input_sets: NPArray,
+                          target_output: NPArray,
                           learning_rate: float):
         # backpropagation
         for i, layer in reversed(tuple(enumerate(self._layers))):
@@ -47,10 +51,10 @@ class Network:
         # update weights
         for layer in self._layers:
             layer.update(learning_rate)
-    
-    def _mse(self, target_output: np.ndarray) -> float:
+
+    def _mse(self, target_output: NPArray) -> float:
         """ mean squared error """
-        squared_error: np.ndarray = np.power(target_output - self._layers[-1].output, 2)
+        squared_error: NPArray = np.power(target_output - self._layers[-1].output, 2)
         # print("target:\n", target_output)
         # print("output:\n", self._layers[-1].output)
         # print("differ:\n", target_output - self._layers[-1].output)
@@ -58,8 +62,8 @@ class Network:
 
         # np.mean gives a float whether target is 1d or 2d - type checker doesn't like it
         return np.mean(squared_error)  # type: ignore
-    
-    def verify_shapes(self, input_sets: np.ndarray, target_output: Optional[np.ndarray]=None) -> None:
+
+    def verify_shapes(self, input_sets: NPArray, target_output: Optional[NPArray] = None) -> None:
         """ raises exception if dimensions don't match """
         if input_sets.shape[1] != self._input_feature_count:
             raise ValueError(
@@ -68,15 +72,13 @@ class Network:
             )
         if target_output is not None:
             if input_sets.shape[0] != target_output.shape[0]:
-                raise ValueError("input and output sizes don't match - shapes " +
-                                str(input_sets.shape) + " " + str(target_output.shape))
+                raise ValueError(f"input and output sizes don't match - {input_sets.shape=} {target_output.shape=}")
             if target_output.shape[1] != self._layers[-1].neuron_count:
-                raise ValueError("target_output shape doesn't match output layer - " +
-                                str(target_output.shape[1]))
+                raise ValueError(f"target_output shape doesn't match output layer - {target_output.shape[1]}")
 
     def train(self,
-              input_sets: np.ndarray,
-              target_output: np.ndarray,
+              input_sets: NPArray,
+              target_output: NPArray,
               epoch_count: int,
               learning_rate: float,
               report_every: int = 2000) -> float:
@@ -86,7 +88,7 @@ class Network:
         never report error values
         or
         always report error values
-        
+
         returns the ending mean squared error
         """
         self.verify_shapes(input_sets, target_output)
@@ -126,7 +128,7 @@ class Network:
 
         return self._mse(output_for_this_epoch)
 
-    def predict(self, input_set: np.ndarray) -> np.ndarray:
+    def predict(self, input_set: NPArray) -> NPArray:
         """ return prediction based on current model """
         if len(input_set.shape) < 2:
             input_set = np.array([input_set])
@@ -163,22 +165,25 @@ class Network:
                 i += 1
             self._layers.append(Layer(group_for_layer))
 
+
 # I can't see any reason to use softmax as an activation function
 # I can't even find any claims that it helps with accuracy, much less any evidence.
 # Lots of people talk about how useful it is,
 #   but that's not a reason to put it in a neural network.
 # If you want softmax, take your output from the neural network,
 #   and put it through a softmax function.
-def softmax(x: np.ndarray) -> np.ndarray:
+def softmax(x: NPArray) -> NPArray:
     """ stable softmax """
     shift_x = x - np.max(x)
     ex = np.exp(shift_x)
     return ex / np.sum(ex)
 
+
 def _test():
     print(softmax(np.array([0.2, 0.5, 0.3])))
     # It doesn't even do the job well...
     # If I already have a probability distribution, why change it?
+
 
 if __name__ == "__main__":
     _test()

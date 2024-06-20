@@ -1,63 +1,65 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Union, Optional, Dict, Type
+
 import numpy as np
 
-from util import ndarray2str, str2ndarray
+from util import NPArray, ndarray2str, str2ndarray
+
 
 class Layer:
     class Activation(ABC):
         @staticmethod
         @abstractmethod
-        def f(x: np.ndarray) -> np.ndarray:
+        def f(x: NPArray) -> NPArray:
             """ activation function """
 
         @staticmethod
         @abstractmethod
-        def der(x: np.ndarray) -> np.ndarray:
+        def der(x: NPArray) -> NPArray:
             """ derivative of activation function """
 
     class Sigmoid(Activation):
         """ sigmoid activation function """
         @staticmethod
-        def f(x: np.ndarray) -> np.ndarray:
+        def f(x: NPArray) -> NPArray:
             return 1 / (1 + np.exp(-x))
 
         @staticmethod
-        def der(x: np.ndarray) -> np.ndarray:
+        def der(x: NPArray) -> NPArray:
             sx = Layer.Sigmoid.f(x)
             return sx * (1 - sx)
 
     class TanH(Activation):
         """ tanh activation function """
         @staticmethod
-        def f(x: np.ndarray) -> np.ndarray:
+        def f(x: NPArray) -> NPArray:
             ex = np.exp(x)
             enx = np.exp(-x)
             return (ex - enx) / (ex + enx)
 
         @staticmethod
-        def der(x: np.ndarray) -> np.ndarray:
+        def der(x: NPArray) -> NPArray:
             return 1 - np.power(Layer.TanH.f(x), 2)
 
     class ReLU(Activation):
         """ rectified linear unit activation function """
         @staticmethod
-        def f(x: np.ndarray) -> np.ndarray:
+        def f(x: NPArray) -> NPArray:
             return np.maximum(0, x)
 
         @staticmethod
-        def der(x: np.ndarray) -> np.ndarray:
+        def der(x: NPArray) -> NPArray:
             return 1 * (x > 0)
 
     class ELU(Activation):
         """ exponential linear unit
         not parametric """
         @staticmethod
-        def f(x: np.ndarray) -> np.ndarray:
-            return (x >= 0) * x + (x < 0) * (np.exp(x) -1)
+        def f(x: NPArray) -> NPArray:
+            return (x >= 0) * x + (x < 0) * (np.exp(x) - 1)
 
         @staticmethod
-        def der(x: np.ndarray) -> np.ndarray:
+        def der(x: NPArray) -> NPArray:
             return np.minimum(np.exp(x), 1)
 
     class Swish(Activation):
@@ -65,11 +67,11 @@ class Layer:
         b = 1
 
         @staticmethod
-        def f(x: np.ndarray) -> np.ndarray:
+        def f(x: NPArray) -> NPArray:
             return x * Layer.Sigmoid.f(Layer.Swish.b * x)
 
         @staticmethod
-        def der(x: np.ndarray) -> np.ndarray:
+        def der(x: NPArray) -> NPArray:
             b_swish = Layer.Swish.b * Layer.Swish.f(x)
             return b_swish + Layer.Sigmoid.f(Layer.Swish.b * x) * (1 - b_swish)
 
@@ -81,25 +83,25 @@ class Layer:
         a = b * b
 
         @staticmethod
-        def f(x: np.ndarray) -> np.ndarray:
+        def f(x: NPArray) -> NPArray:
             # possible low level optimization:
             # use a bitmask to take only the sign bit of x
             # "xor" or "or" with the result of (sqrt(abs(x) + a) - b)
             return np.sign(x) * (np.sqrt(np.abs(x) + Layer.TruncatedSQRT.a) - Layer.TruncatedSQRT.b)
 
         @staticmethod
-        def der(x: np.ndarray) -> np.ndarray:
+        def der(x: NPArray) -> NPArray:
             return 1 / (2 * np.sqrt(np.abs(x) + Layer.TruncatedSQRT.a))
 
     class SQRT(Activation):
         """ square root (not truncated) """
 
         @staticmethod
-        def f(x: np.ndarray) -> np.ndarray:
+        def f(x: NPArray) -> NPArray:
             return np.sign(x) * (np.sqrt(np.abs(x)))
 
         @staticmethod
-        def der(x: np.ndarray) -> np.ndarray:
+        def der(x: NPArray) -> NPArray:
             return 1 / (2 * np.sqrt(np.abs(x)) + 1e-307)
 
     class SqrtToLinear(Activation):
@@ -111,13 +113,13 @@ class Layer:
         a = b * b
 
         @staticmethod
-        def f(x: np.ndarray) -> np.ndarray:
+        def f(x: NPArray) -> NPArray:
             return ((x >= 0) * (Layer.SqrtToLinear.linear_slope * x)
                     + (x < 0) * (-(np.sqrt(np.abs(x) + Layer.SqrtToLinear.a)
                                    - Layer.SqrtToLinear.b)))
 
         @staticmethod
-        def der(x: np.ndarray) -> np.ndarray:
+        def der(x: NPArray) -> NPArray:
             return ((x >= 0) * (Layer.SqrtToLinear.linear_slope)
                     + (x < 0) * (1 / (2 * np.sqrt(np.abs(x) + Layer.SqrtToLinear.a))))
 
@@ -132,7 +134,7 @@ class Layer:
             assert isinstance(activation, type)
             assert issubclass(activation, Layer.Activation)
             neuron_count = neuron_count_or_string_list
-            self._weights: np.ndarray = np.random.rand(neuron_count_previous, neuron_count) * 4 - 2
+            self._weights: NPArray = np.random.rand(neuron_count_previous, neuron_count) * 4 - 2
             if not random_init:
                 interval = 4.0 / (neuron_count_previous * neuron_count)
                 v = -1.995
@@ -140,7 +142,7 @@ class Layer:
                     for col in range(neuron_count):
                         self._weights[row][col] = v
                         v += interval
-            self._biases: np.ndarray = np.random.rand(neuron_count) * 4 - 2
+            self._biases: NPArray = np.random.rand(neuron_count) * 4 - 2
             if not random_init:
                 self._biases = np.zeros((1, neuron_count))
             self.activation: Type["Layer.Activation"] = activation
@@ -148,24 +150,24 @@ class Layer:
             self.load_from_strings(neuron_count_or_string_list)
 
         # null numpy array
-        na = np.ndarray((0,))
+        na = NPArray((0,))
 
         # commonly labeled "z" in information on ANNs
-        self._weighted_sum_before_activation: np.ndarray = na
+        self._weighted_sum_before_activation: NPArray = na
         # commonly labeled "a" in information on ANNs
         # after activation function
-        self._output: np.ndarray = na
+        self._output: NPArray = na
 
         # output from previous layer
-        self._input: np.ndarray = na
+        self._input: NPArray = na
         self._dirty = True  # output needs to be recalculated
 
         # all the derivatives
-        self.derror_dout: np.ndarray = na  # of error with respect to output
-        self.dout_dz: np.ndarray = na  # of output with respect to z
-        self.dz_dw: np.ndarray = na  # of z with respect to weights
-        self.derror_dz: np.ndarray = na  # of error with respect to z (also error with respect to bias)
-        self.derror_dw: np.ndarray = na  # of error with respect to weights
+        self.derror_dout: NPArray = na  # of error with respect to output
+        self.dout_dz: NPArray = na  # of output with respect to z
+        self.dz_dw: NPArray = na  # of z with respect to weights
+        self.derror_dz: NPArray = na  # of error with respect to z (also error with respect to bias)
+        self.derror_dw: NPArray = na  # of error with respect to weights
 
     def __repr__(self):
         # TODO: make a warning or something if this activation isn't in layer because I can't load it
@@ -217,7 +219,7 @@ class Layer:
         return self._input
 
     @input.setter
-    def input(self, value: np.ndarray):
+    def input(self, value: NPArray):
         self._input = value
         self._dirty = True
 
@@ -227,7 +229,7 @@ class Layer:
         return self._weights
 
     @weights.setter
-    def weights(self, value: np.ndarray):
+    def weights(self, value: NPArray):
         self._weights = value
         self._dirty = True
 

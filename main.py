@@ -1,9 +1,12 @@
 from copy import deepcopy
+
 import numpy as np
+
 from layer import Layer
 from network import Network
 
 GD = False  # gradient descent or evolution
+
 
 def main():
     # 4 input sets, 2 input features
